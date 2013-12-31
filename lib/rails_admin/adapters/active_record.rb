@@ -26,17 +26,21 @@ module RailsAdmin
       end
 
       def all(options = {}, scope = nil)
-        scope ||= self.scoped
-        scope = scope.includes(options[:include]) if options[:include]
-        scope = scope.limit(options[:limit]) if options[:limit]
-        scope = scope.where(primary_key => options[:bulk_ids]) if options[:bulk_ids]
-        scope = query_scope(scope, options[:query]) if options[:query]
-        scope = filter_scope(scope, options[:filters]) if options[:filters]
-        if options[:page] && options[:per]
-          scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
+        begin
+          scope ||= self.scoped
+          scope = scope.includes(options[:include]) if options[:include]
+          scope = scope.limit(options[:limit]) if options[:limit]
+          scope = scope.where(primary_key => options[:bulk_ids]) if options[:bulk_ids]
+          scope = query_scope(scope, options[:query]) if options[:query]
+          scope = filter_scope(scope, options[:filters]) if options[:filters]
+          if options[:page] && options[:per]
+            scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
+          end
+          scope = scope.reorder("#{options[:sort]} #{options[:sort_reverse] ? 'asc' : 'desc'}") if options[:sort]
+          scope
+        rescue
+          self.scoped
         end
-        scope = scope.reorder("#{options[:sort]} #{options[:sort_reverse] ? 'asc' : 'desc'}") if options[:sort]
-        scope
       end
 
       def count(options = {}, scope = nil)
@@ -209,7 +213,11 @@ module RailsAdmin
         end
 
         def read_only_lookup
-          klass.all.instance_eval(&scope).readonly_value if scope.is_a? Proc
+          begin
+            klass.all.instance_eval(&scope).readonly_value if scope && scope.is_a?(Proc)
+          rescue
+            klass.all
+          end
         end
 
         def display_name
