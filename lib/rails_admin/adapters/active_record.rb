@@ -18,7 +18,7 @@ module RailsAdmin
       end
 
       def scoped
-        model.all
+        model.where(true)
       end
 
       def first(options = {}, scope = nil)
@@ -26,21 +26,17 @@ module RailsAdmin
       end
 
       def all(options = {}, scope = nil)
-        begin
-          scope ||= self.scoped
-          scope = scope.includes(options[:include]) if options[:include]
-          scope = scope.limit(options[:limit]) if options[:limit]
-          scope = scope.where(primary_key => options[:bulk_ids]) if options[:bulk_ids]
-          scope = query_scope(scope, options[:query]) if options[:query]
-          scope = filter_scope(scope, options[:filters]) if options[:filters]
-          if options[:page] && options[:per]
-            scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
-          end
-          scope = scope.reorder("#{options[:sort]} #{options[:sort_reverse] ? 'asc' : 'desc'}") if options[:sort]
-          scope
-        rescue
-          self.scoped
+        scope ||= self.scoped
+        scope = scope.includes(options[:include]) if options[:include]
+        scope = scope.limit(options[:limit]) if options[:limit]
+        scope = scope.where(primary_key => options[:bulk_ids]) if options[:bulk_ids]
+        scope = query_scope(scope, options[:query]) if options[:query]
+        scope = filter_scope(scope, options[:filters]) if options[:filters]
+        if options[:page] && options[:per]
+          scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
         end
+        scope = scope.reorder("#{options[:sort]} #{options[:sort_reverse] ? 'asc' : 'desc'}") if options[:sort]
+        scope
       end
 
       def count(options = {}, scope = nil)
@@ -213,11 +209,7 @@ module RailsAdmin
         end
 
         def read_only_lookup
-          begin
-            klass.all.instance_eval(&scope).readonly_value if scope && scope.is_a?(Proc)
-          rescue
-            klass.all
-          end
+          klass.where(true).instance_eval(&self).readonly_value if self.is_a? Proc
         end
 
         def display_name
