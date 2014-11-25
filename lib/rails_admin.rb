@@ -8,6 +8,16 @@ require 'rails_admin/extensions/history'
 require 'rails_admin/support/csv_converter'
 require 'rails_admin/support/core_extensions'
 
+require 'rails_admin_nestable/engine'
+
+require 'rails_admin/config/actions'
+require 'rails_admin/config/model'
+
+require 'rails_admin_nestable/configuration'
+require 'rails_admin_nestable/nestable'
+require 'rails_admin_nestable/model'
+require 'rails_admin_nestable/helper'
+
 module RailsAdmin
   # Setup RailsAdmin
   #
