@@ -73,7 +73,9 @@ module RailsAdmin
                 when 'Proc'
                   query.merge!(@options[:scope].call)
                 when 'Symbol'
-                  query.merge!(@abstract_model.model.public_send(@options[:scope]))
+                  if request.params[@options[:scope]]
+                    query = query.where("#{@options[:scope]} = #{request.params['user_id']}")
+                  end
               end
 
               if @nestable_conf.tree?
